@@ -44,7 +44,7 @@ public class SetDatabase {
     public static void main(String[] args) throws SQLException, IOException {
         SetDatabase setDB = new SetDatabase();
         setDB.clearTables(); // clear all tables in the tables array from database if they are existing
-        setDB.initializeTable();//create and initialize databse and tables
+        setDB.initializeTable();//create and initialize database and tables
         setDB.queryTableAfterInitilization();
         deleteFilesInFolder(imageWorkingFolderPath);
         copyFolderContents(imageBackupFolderPath, imageWorkingFolderPath);

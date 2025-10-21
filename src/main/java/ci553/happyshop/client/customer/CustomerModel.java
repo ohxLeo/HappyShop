@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collections;
 
 /**
  * TODO
@@ -69,8 +70,22 @@ public class CustomerModel {
             // To keep the trolley organized, add code here or call a method that:
             //TODO
             // 1. Merges items with the same product ID (combining their quantities).
+            boolean prodExist = false; // used to state if item is within the trolley already, default = false
+
+            for (Product product : trolley) { // looks at each item in the list (trolley)
+                if (product.getProductId().equals(theProduct.getProductId())) { // check if current product is within trolley already
+                    prodExist = true; // item is in trolley already
+                    int newQuantity = product.getOrderedQuantity() + 1; // get current quantity then increment by 1
+                    product.setOrderedQuantity(newQuantity); // set new quantity
+                    break;
+             }
+            }
             // 2. Sorts the products in the trolley by product ID.
-            trolley.add(theProduct);
+            Collections.sort(trolley);
+
+            if(!prodExist) { // if product is not in trolley, add to trolley
+                trolley.add(theProduct);
+            }
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
         else{
