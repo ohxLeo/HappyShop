@@ -135,6 +135,7 @@ public class DerbyRW implements DatabaseRW {
         String checkSql = "SELECT inStock FROM ProductTable WHERE productId = ?";
         String updateSql = "UPDATE ProductTable SET inStock = inStock - ? WHERE productId = ?";
 
+
         // Use try-with-resources for Connection and PreparedStatements
         try (Connection conn = DriverManager.getConnection(dbURL)) {
             conn.setAutoCommit(false); // Turn off auto-commit for transaction
@@ -193,6 +194,7 @@ public class DerbyRW implements DatabaseRW {
         } finally {
             lock.unlock(); // Always release the lock after the operation
         }
+
 
         return insufficientProducts;
     }

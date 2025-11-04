@@ -77,14 +77,16 @@ public class CustomerModel {
                     prodExist = true; // item is in trolley already
                     int newQuantity = product.getOrderedQuantity() + 1; // get current quantity then increment by 1
                     product.setOrderedQuantity(newQuantity); // set new quantity
+                    System.out.println("NEW QUANTITY:" + newQuantity);
                     break;
              }
             }
             // 2. Sorts the products in the trolley by product ID.
-            Collections.sort(trolley);
+            //Collections.sort(trolley);
 
             if(!prodExist) { // if product is not in trolley, add to trolley
                 trolley.add(theProduct);
+                Collections.sort(trolley); // sorts list so new item is in correct place - by productID
             }
             displayTaTrolley = ProductListFormatter.buildString(trolley); //build a String for trolley so that we can show it
         }
@@ -103,8 +105,8 @@ public class CustomerModel {
             // If any products are insufficient, the update will be rolled back.
             // If all products are sufficient, the database will be updated, and insufficientProducts will be empty.
             // Note: If the trolley is already organized (merged and sorted), grouping is unnecessary.
-            ArrayList<Product> groupedTrolley= groupProductsById(trolley);
-            ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(groupedTrolley);
+            //ArrayList<Product> groupedTrolley= groupProductsById(trolley);
+            ArrayList<Product> insufficientProducts= databaseRW.purchaseStocks(trolley);
 
             if(insufficientProducts.isEmpty()){ // If stock is sufficient for all products
                 //get OrderHub and tell it to make a new Order
