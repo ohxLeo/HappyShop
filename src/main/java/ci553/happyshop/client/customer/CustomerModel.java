@@ -135,10 +135,34 @@ public class CustomerModel {
                 //TODO
                 // Add the following logic here:
                 // 1. Remove products with insufficient stock from the trolley.
+                for (Product p : insufficientProducts) {
+                    // Go through each product that doesn't have enough stock
+                    for (int i = 0; i < trolley.size(); i++) {
+                        Product t = trolley.get(i);
+                        if (t.getProductId().equals(p.getProductId())) {
+                            trolley.remove(i); // remove from trolley
+                            displayTaTrolley = ProductListFormatter.buildString(trolley);
+                            break; // stop
+                        }
+                    }
+                }
                 // 2. Trigger a message window to notify the customer about the insufficient stock, rather than directly changing displayLaSearchResult.
                 //You can use the provided RemoveProductNotifier class and its showRemovalMsg method for this purpose.
                 //remember close the message window where appropriate (using method closeNotifierWindow() of RemoveProductNotifier class)
-                displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
+                RemoveProductNotifier notifier = new RemoveProductNotifier();
+                notifier.cusView = this.cusView;      // <--- assign the main CustomerView
+                notifier.showRemovalMsg(errorMsg.toString());
+
+// Build a simple message to display
+                String message = "The following products were removed because there is not enough stock:\n";
+                for (Product p : insufficientProducts) {
+                    message += "- " + p.getProductId() + ": " + p.getProductDescription()
+                            + " (Only " + p.getStockQuantity() + " left, "
+                            + p.getOrderedQuantity() + " requested)\n";
+                }
+                notifier.showRemovalMsg(message);
+
+                //displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
                 System.out.println("stock is not enough");
             }
         }
