@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -44,6 +45,7 @@ public class CustomerView  {
     private ImageView ivProduct; //image area in searchPage
     private Label lbProductInfo;//product text info in searchPage
     private TextArea taTrolley; //in trolley Page
+    private Label laSortType;
     private TextArea taReceipt;//in receipt page
 
     // Holds a reference to this CustomerView window for future access and management
@@ -139,11 +141,19 @@ public class CustomerView  {
         btnCheckout.setOnAction(this::buttonClicked);
         btnCheckout.setStyle(UIStyle.buttonStyle);
 
-        HBox hbBtns = new HBox(10, btnCancel,btnCheckout);
+        laSortType = new Label("Sorted by Product ID");
+        laSortType.setStyle(UIStyle.labelStyle);
+
+        Button btnSort = new Button("Sort");
+        btnSort.setOnAction(this::buttonClicked);
+        btnSort.setStyle(UIStyle.buttonStyle);
+
+
+        HBox hbBtns = new HBox(8, btnCancel, btnSort, btnCheckout);
         hbBtns.setStyle("-fx-padding: 15px;");
         hbBtns.setAlignment(Pos.CENTER);
 
-        vbTrolleyPage = new VBox(15, laPageTitle, taTrolley, hbBtns);
+        vbTrolleyPage = new VBox(5, laPageTitle, taTrolley, laSortType, hbBtns);
         vbTrolleyPage.setPrefWidth(COLUMN_WIDTH);
         vbTrolleyPage.setAlignment(Pos.TOP_CENTER);
         vbTrolleyPage.setStyle("-fx-padding: 15px;");
@@ -191,7 +201,7 @@ public class CustomerView  {
     }
 
 
-    public void update(String imageName, String searchResult, String trolley, String receipt) {
+    public void update(String imageName, String searchResult, String trolley, String receipt, int sortType) {
 
         ivProduct.setImage(new Image(imageName));
         lbProductInfo.setText(searchResult);
@@ -200,6 +210,19 @@ public class CustomerView  {
             showTrolleyOrReceiptPage(vbReceiptPage);
             taReceipt.setText(receipt);
         }
+        String sortText = "Sorted by Product ID";
+        if(sortType == 1){
+            sortText = "Sorted by Product ID";} 
+        else if (sortType == 2) {
+            sortText = "Sorted by Product Name";}
+        else if (sortType == 3) {
+            sortText = "Sorted by Price | Low to High";}
+        else if (sortType == 4) {
+            sortText = "Sorted by Price | High to Low";}
+        
+        laSortType.setText(sortText);
+        System.out.println(sortType);
+
     }
 
     // Replaces the last child of hbRoot with the specified page.

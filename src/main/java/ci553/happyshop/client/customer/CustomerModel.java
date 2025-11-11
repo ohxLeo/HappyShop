@@ -6,6 +6,7 @@ import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.ProductListFormatter;
+import javafx.scene.control.TableColumn;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -126,9 +127,6 @@ public class CustomerModel {
                 }
                 theProduct = null;
 
-                //TODO
-                // Add the following logic here:
-                // 1. Remove products with insufficient stock from the trolley.
                 for (Product p : insufficientProducts) {
                     // Go through each product that doesn't have enough stock
                     for (int i = 0; i < trolley.size(); i++) {
@@ -204,10 +202,11 @@ public class CustomerModel {
             Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
             imageName = imageFullPath.toUri().toString(); //get the image full Uri then convert to String
             System.out.println("Image absolute path: " + imageFullPath); // Debugging to ensure path is correct
+
         } else {
             imageName = "imageHolder.jpg";
         }
-        cusView.update(imageName, displayLaSearchResult, displayTaTrolley, displayTaReceipt);
+        cusView.update(imageName, displayLaSearchResult, displayTaTrolley, displayTaReceipt, sortChoice);
     }
     // extra notes:
     //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
@@ -218,16 +217,53 @@ public class CustomerModel {
         return trolley;
     }
 
+    int sortChoice = 1; // for sort choice
+
+    void sortChange(){ // change sort type then sort
+        if(sortChoice < 4){
+            sortChoice++;
+        }
+        else{
+            sortChoice = 1; // reset to first option
+        }
+        makeOrganizedTrolley();
+    }
 
     void makeOrganizedTrolley() {
-        //Collections.sort(trolley, Comparator.comparing(Product::getProductId)); // sorts list so new item is in correct place - by productID
-        //Collections.sort(trolley, Comparator.comparing(Product::getProductDescription)); // sorts list so new item is in correct place - by productName
-        Collections.sort(trolley, Comparator.comparingDouble(Product -> Product.getUnitPrice() * Product.getOrderedQuantity())); // sorts list so new item is in correct place - by total product price (prod price x quantity)
-        System.out.println("Sorted List:" + trolley);
 
-        System.out.println("Sorted List:");
-        for (Product p : trolley) {
-            System.out.println("Name: " + p.getProductDescription() + " (ID: " + p.getProductId() + ", Qty: " + p.getOrderedQuantity() + ", Price: " + (p.getUnitPrice() * p.getOrderedQuantity()) + ")");
+        switch (sortChoice) {
+            case 1:
+                // sorts list so new item is in correct place - by productID
+                Collections.sort(trolley, Comparator.comparing(Product::getProductId));
+                System.out.println("Trolley sorted by Product ID.");
+
+                break;
+
+            case 2:
+                // sorts list so new item is in correct place - by productName
+                Collections.sort(trolley, Comparator.comparing(Product::getProductDescription));
+                System.out.println("Trolley sorted by Product Name.");
+                break;
+
+            case 3:
+                // sorts list so new item is in correct place - by total product price (prod price x quantity) low to high
+                Collections.sort(trolley, Comparator.comparingDouble(Product -> Product.getUnitPrice() * Product.getOrderedQuantity()));
+                System.out.println("Trolley sorted by Total Product Price.");
+                break;
+            case 4:
+                // sorts list so new item is in correct place - by total product price (prod price x quantity) high to low
+                Comparator<Product> comparator = Comparator.comparingDouble(p -> p.getUnitPrice() * p.getOrderedQuantity());
+                comparator = comparator.reversed();
+                Collections.sort(trolley, comparator);
+                System.out.println("Trolley sorted by Total Product Price.");
+                break;
         }
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+
+//        System.out.println("Sorted List:");
+//        for (Product p : trolley) {
+//            System.out.println("Name: " + p.getProductDescription() + " (ID: " + p.getProductId() + ", Qty: " + p.getOrderedQuantity() + ", Price: " + (p.getUnitPrice() * p.getOrderedQuantity()) + ")");
+//        }
     }
 }
