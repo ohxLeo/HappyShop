@@ -113,7 +113,7 @@ public class RemoveProductNotifier {
         if (window ==null ||!window.isShowing() ) {
             createWindow(); // create window if not exists
         }
-
+        cusView.tfId.clear(); // empties the ID text field & shows prompt
         taRemoveMsg.setText(removalMsg); // Update the error message
         window.toFront(); // Bring the window to the front if it's already open
     }
