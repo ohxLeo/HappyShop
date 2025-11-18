@@ -1,5 +1,7 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
+
 import java.io.IOException;
 import java.sql.SQLException;
 
@@ -8,11 +10,8 @@ public class CustomerController {
 
     public void doAction(String action) throws SQLException, IOException {
         switch (action) {
-            case "Search":
+            case "\uD83D\uDD0D":
                 cusModel.search();
-                break;
-            case "Add to Trolley":
-                cusModel.addToTrolley();
                 break;
             case "Cancel":
                 cusModel.cancel();
@@ -27,6 +26,17 @@ public class CustomerController {
                 cusModel.sortChange();
                 break;
         }
+    }
+    public void doTrolleyAction(String action, Product product) throws SQLException, IOException {
+        switch (action){
+            case "Add":
+                cusModel.addToTrolley(product);
+                break;
+            case "Remove":
+                cusModel.RemoveFromTrolley(product);
+                break;
+        }
+
     }
 
 }

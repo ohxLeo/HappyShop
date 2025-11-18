@@ -6,7 +6,9 @@ import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.ProductListFormatter;
+import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
+import javafx.collections.FXCollections;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -34,38 +36,57 @@ public class CustomerModel {
 
     //SELECT productID, description, image, unitPrice,inStock quantity
     void search() throws SQLException {
-        String productId = cusView.tfId.getText().trim();
-        if (!productId.isEmpty()) {
-            theProduct = databaseRW.searchByProductId(productId); //search database
-            if (theProduct != null && theProduct.getStockQuantity() > 0) {
-                double unitPrice = theProduct.getUnitPrice();
-                String description = theProduct.getProductDescription();
-                int stock = theProduct.getStockQuantity();
+        String input = cusView.tfSearch.getText().trim();
 
-                String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
-                String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
-                displayLaSearchResult = baseInfo + quantityInfo;
-                System.out.println(displayLaSearchResult);
-            } else {
-                theProduct = null;
-                displayLaSearchResult = "No Product was found with ID " + productId;
-                System.out.println("No Product was found with ID " + productId);
+
+        ArrayList<Product> results = new ArrayList<>();
+
+        if (!input.isEmpty()) {
+            if (input.matches("\\d+")) {
+                Product p = databaseRW.searchByProductId(input);
+                if (p != null) {
+                    results.add(p);
+                }
             }
-        } else {
+            else {
+                results = databaseRW.searchProduct(input);
+            }
+//        if (!productId.isEmpty()) {
+//            theProduct = databaseRW.searchByProductId(productId); //search database
+//            if (theProduct != null && theProduct.getStockQuantity() > 0) {
+//                double unitPrice = theProduct.getUnitPrice();
+//                String description = theProduct.getProductDescription();
+//                int stock = theProduct.getStockQuantity();
+//
+//                String baseInfo = String.format("Product_Id: %s\n%s,\nPrice: £%.2f", productId, description, unitPrice);
+//                String quantityInfo = stock < 100 ? String.format("\n%d units left.", stock) : "";
+//                displayLaSearchResult = baseInfo + quantityInfo;
+//                System.out.println(displayLaSearchResult);
+//            } else {
+                theProduct = null;
+                displayLaSearchResult = "No Product was found with ID " + input;
+                System.out.println("No Product was found with ID " + input);
+            }
+
+        else if(!input.equals("")) {
+            results = databaseRW.searchProduct(input);
+        }
+        else {
             theProduct = null;
             displayLaSearchResult = "Please type ProductID";
             System.out.println("Please type ProductID.");
         }
+        ObservableList<Product> observable =
+                FXCollections.observableArrayList(results);
+
+        cusView.updateObservableProductList(observable);
         updateView();
     }
 
-    void addToTrolley() {
+    void addToTrolley(Product productChosen) {
+        theProduct = productChosen;
         if (theProduct != null) {
 
-            // trolley.add(theProduct) — Product is appended to the end of the trolley.
-            // To keep the trolley organized, add code here or call a method that:
-            //TODO
-            // 1. Merges items with the same product ID (combining their quantities).
             boolean prodExist = false; // used to state if item is within the trolley already, default = false
 
             for (Product product : trolley) { // looks at each item in the list (trolley)
@@ -80,6 +101,7 @@ public class CustomerModel {
             //Collections.sort(trolley);
 
             if (!prodExist) { // if product is not in trolley, add to trolley
+                theProduct.setOrderedQuantity(1);
                 trolley.add(theProduct);
             }
 
@@ -93,6 +115,20 @@ public class CustomerModel {
         updateView();
     }
 
+    void RemoveFromTrolley(Product chosenProduct) {
+        if (chosenProduct == null) return;
+
+        int newQty = chosenProduct.getOrderedQuantity() - 1;
+        chosenProduct.setOrderedQuantity(Math.max(newQty, 0)); // never below 0
+
+        // If quantity reaches 0, remove the product from the trolley
+        if (chosenProduct.getOrderedQuantity() == 0) {
+            trolley.remove(chosenProduct);
+        }
+        displayTaTrolley = ProductListFormatter.buildString(trolley);
+        updateView();
+    }
+
     void checkOut() throws IOException, SQLException {
         if (!trolley.isEmpty()) {
             // Group the products in the trolley by productId to optimize stock checking
@@ -101,7 +137,7 @@ public class CustomerModel {
             // If all products are sufficient, the database will be updated, and insufficientProducts will be empty.
             // Note: If the trolley is already organized (merged and sorted), grouping is unnecessary.
             //ArrayList<Product> groupedTrolley= groupProductsById(trolley);
-            Collections.sort(trolley, Comparator.comparing(Product::getProductId)); // sorts list by productID for picker
+            trolley.sort(Comparator.comparing(Product::getProductId)); // sorts list by productID for picker
             ArrayList<Product> insufficientProducts = databaseRW.purchaseStocks(trolley);
 
             if (insufficientProducts.isEmpty()) { // If stock is sufficient for all products
@@ -120,7 +156,7 @@ public class CustomerModel {
             } else { // Some products have insufficient stock — build an error message to inform the customer
                 StringBuilder errorMsg = new StringBuilder();
                 for (Product p : insufficientProducts) {
-                    errorMsg.append("\u2022 " + p.getProductId()).append(", ")
+                    errorMsg.append("\u2022 ").append(p.getProductId()).append(", ")
                             .append(p.getProductDescription()).append(" (Only ")
                             .append(p.getStockQuantity()).append(" available, ")
                             .append(p.getOrderedQuantity()).append(" requested)\n");
@@ -185,6 +221,11 @@ public class CustomerModel {
     }
 
     void cancel() {
+
+        for (Product p : trolley) {
+            p.setOrderedQuantity(0);
+        }
+
         trolley.clear();
         displayTaTrolley = "";
         updateView();
@@ -208,9 +249,11 @@ public class CustomerModel {
         }
         cusView.update(imageName, displayLaSearchResult, displayTaTrolley, displayTaReceipt, sortChoice);
     }
-    // extra notes:
-    //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
-    //File.toURI(): Converts a File object (a file on the filesystem) to a URI object
+    /*
+     extra notes:
+    Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
+    File.toURI(): Converts a File object (a file on the filesystem) to a URI object
+    */
 
     //for test only
     public ArrayList<Product> getTrolley() {
@@ -218,7 +261,6 @@ public class CustomerModel {
     }
 
     int sortChoice = 1; // for sort choice
-
     void sortChange(){ // change sort type then sort
         if(sortChoice < 4){
             sortChoice++;
@@ -234,27 +276,27 @@ public class CustomerModel {
         switch (sortChoice) {
             case 1:
                 // sorts list so new item is in correct place - by productID
-                Collections.sort(trolley, Comparator.comparing(Product::getProductId));
+                trolley.sort(Comparator.comparing(Product::getProductId));
                 System.out.println("Trolley sorted by Product ID.");
 
                 break;
 
             case 2:
                 // sorts list so new item is in correct place - by productName
-                Collections.sort(trolley, Comparator.comparing(Product::getProductDescription));
+                trolley.sort(Comparator.comparing(Product::getProductDescription));
                 System.out.println("Trolley sorted by Product Name.");
                 break;
 
             case 3:
                 // sorts list so new item is in correct place - by total product price (prod price x quantity) low to high
-                Collections.sort(trolley, Comparator.comparingDouble(Product -> Product.getUnitPrice() * Product.getOrderedQuantity()));
+                trolley.sort(Comparator.comparingDouble(Product -> Product.getUnitPrice() * Product.getOrderedQuantity()));
                 System.out.println("Trolley sorted by Total Product Price.");
                 break;
             case 4:
                 // sorts list so new item is in correct place - by total product price (prod price x quantity) high to low
                 Comparator<Product> comparator = Comparator.comparingDouble(p -> p.getUnitPrice() * p.getOrderedQuantity());
                 comparator = comparator.reversed();
-                Collections.sort(trolley, comparator);
+                trolley.sort(comparator);
                 System.out.println("Trolley sorted by Total Product Price.");
                 break;
         }

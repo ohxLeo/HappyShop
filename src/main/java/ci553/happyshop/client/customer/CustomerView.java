@@ -1,8 +1,12 @@
 package ci553.happyshop.client.customer;
 
+import ci553.happyshop.catalogue.Product;
+import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.UIStyle;
 import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -14,10 +18,15 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
+import javafx.scene.control.ListView;
+import javafx.scene.control.ListCell;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
+
 
 /**
  * The CustomerView is separated into two sections by a line :
@@ -38,8 +47,7 @@ public class CustomerView  {
     private VBox vbTrolleyPage;  //vbTrolleyPage and vbReceiptPage will swap with each other when need
     private VBox vbReceiptPage;
 
-    TextField tfId; //for user input on the search page. Made accessible so it can be accessed or modified by CustomerModel
-    TextField tfName; //for user input on the search page. Made accessible so it can be accessed by CustomerModel
+    TextField tfSearch; //for user input on the search page. Made accessible so it can be accessed or modified by CustomerModel
 
     //four controllers needs updating when program going on
     private ImageView ivProduct; //image area in searchPage
@@ -47,6 +55,9 @@ public class CustomerView  {
     private TextArea taTrolley; //in trolley Page
     private Label laSortType;
     private TextArea taReceipt;//in receipt page
+
+    private ObservableList<Product> customerProductList; //observable product list
+    ListView<Product> lvCustomerProducts; //A ListView observes the product list
 
     // Holds a reference to this CustomerView window for future access and management
     // (e.g., positioning the removeProductNotifier when needed).
@@ -81,28 +92,19 @@ public class CustomerView  {
         Label laPageTitle = new Label("Search by Product ID/Name");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
 
-        Label laId = new Label("ID:      ");
+        Label laId = new Label("ID/Name:");
         laId.setStyle(UIStyle.labelStyle);
-        tfId = new TextField();
-        tfId.setPromptText("eg. 0001");
-        tfId.setStyle(UIStyle.textFiledStyle);
-        HBox hbId = new HBox(10, laId, tfId);
-
-        Label laName = new Label("Name:");
-        laName.setStyle(UIStyle.labelStyle);
-        tfName = new TextField();
-        tfName.setPromptText("implement it if you want");
-        tfName.setStyle(UIStyle.textFiledStyle);
-        HBox hbName = new HBox(10, laName, tfName);
+        tfSearch = new TextField();
+        tfSearch.setPromptText("eg. 0001 / TV");
+        tfSearch.setStyle(UIStyle.textFiledStyle);
+        //HBox hbSeach = new HBox(10, laId, tfSearch, btnSearch);
 
         Label laPlaceHolder = new Label(  " ".repeat(15)); //create left-side spacing so that this HBox aligns with others in the layout.
-        Button btnSearch = new Button("Search");
+        Button btnSearch = new Button("\uD83D\uDD0D");
         btnSearch.setStyle(UIStyle.buttonStyle);
         btnSearch.setOnAction(this::buttonClicked);
-        Button btnAddToTrolley = new Button("Add to Trolley");
-        btnAddToTrolley.setStyle(UIStyle.buttonStyle);
-        btnAddToTrolley.setOnAction(this::buttonClicked);
-        HBox hbBtns = new HBox(10, laPlaceHolder,btnSearch, btnAddToTrolley);
+        //HBox hbBtns = new HBox(btnSearch);
+        HBox hbSeach = new HBox(10, laId, tfSearch, btnSearch);
 
         ivProduct = new ImageView("imageHolder.jpg");
         ivProduct.setFitHeight(60);
@@ -117,13 +119,72 @@ public class CustomerView  {
         HBox hbSearchResult = new HBox(5, ivProduct, lbProductInfo);
         hbSearchResult.setAlignment(Pos.CENTER_LEFT);
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbId, hbName, hbBtns, hbSearchResult);
+        customerProductList = FXCollections.observableArrayList();
+        lvCustomerProducts = new ListView<>(customerProductList);
+
+
+
+        VBox vbSearchPage = new VBox(15, laPageTitle, hbSeach, lvCustomerProducts);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
 
+        lvCustomerProducts.setCellFactory(param -> new ListCell<Product>() {
+            @Override
+            protected void updateItem(Product product, boolean empty) {
+                super.updateItem(product, empty);
+
+                if (empty || product == null) {
+                    setGraphic(null);
+                    System.out.println("setCellFactory - empty item");
+                } else {
+                    String imageName = product.getProductImageName(); // Get image name (e.g. "0001.jpg")
+                    String relativeImageUrl = StorageLocation.imageFolder + imageName;
+                    // Get the full absolute path to the image
+                    Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
+                    String imageFullUri = imageFullPath.toUri().toString();// Build the full image Uri
+
+                    ImageView ivPro;
+                    try {
+                        ivPro = new ImageView(new Image(imageFullUri, 50,45, true,true)); // Attempt to load the product image
+                    } catch (Exception e) {
+                        // If loading fails, use a default image directly from the resources folder
+                        ivPro = new ImageView(new Image("imageHolder.jpg",50,45,true,true)); // Directly load from resources
+                    }
+
+                    Button btnAdd = new Button("+");
+                    btnAdd.setOnAction(e -> {
+                        try {
+                            cusController.doTrolleyAction("Add",product);
+                        } catch (SQLException | IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    });
+
+                    Button btnSub = new Button("-");
+                    btnSub.setOnAction(e -> {
+                        try {
+                            cusController.doTrolleyAction("Remove",product);
+                        } catch (SQLException | IOException ex) {
+                            ex.printStackTrace();
+                        }
+
+                    });
+
+
+
+
+                    Label laProToString = new Label(product.toString()); // Create a label for product details
+                    HBox hbox = new HBox(10, ivPro, laProToString, btnAdd, btnSub); // Put ImageView and label in a horizontal layout
+                    setGraphic(hbox);  // Set the whole row content
+                }
+            }
+        });
+
         return vbSearchPage;
     }
+
+
 
     private VBox CreateTrolleyPage() {
         Label laPageTitle = new Label("🛒🛒  Trolley 🛒🛒");
@@ -223,7 +284,41 @@ public class CustomerView  {
         laSortType.setText(sortText);
         System.out.println(sortType);
 
+
+
     }
+
+    public void updateObservableProductList(ObservableList<Product> productList) {
+        int proCounter = productList.size();
+        System.out.println(proCounter);
+
+        // Optional: update a label if you want a summary like warehouse
+        // You might need to add this label to your search page first
+        // laSearchSummary.setText(proCounter + " products found");
+        // laSearchSummary.setVisible(true);
+
+        // Update the observable list
+        customerProductList.clear();
+        customerProductList.addAll(productList);
+
+        // Optionally, select the first product and update the image/info display
+        if (!customerProductList.isEmpty()) {
+            lvCustomerProducts.getSelectionModel().select(1);
+            Product firstProduct = lvCustomerProducts.getSelectionModel().getSelectedItem();
+
+            // Update image and info labels
+            String imageName = firstProduct.getProductImageName();
+            String relativeImageUrl = StorageLocation.imageFolder + imageName;
+            Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
+            String imageFullUri = imageFullPath.toUri().toString();
+            ivProduct.setImage(new Image(imageFullUri));
+            lbProductInfo.setText(firstProduct.toString());
+        } else {
+            ivProduct.setImage(new Image("imageHolder.jpg"));
+            lbProductInfo.setText("No products found.");
+        }
+    }
+
 
     // Replaces the last child of hbRoot with the specified page.
     // the last child is either vbTrolleyPage or vbReceiptPage.
