@@ -7,7 +7,6 @@ import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.ProductListFormatter;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TableColumn;
 import javafx.collections.FXCollections;
 
 import java.io.IOException;
@@ -97,8 +96,6 @@ public class CustomerModel {
                     break;
                 }
             }
-            // 2. Sorts the products in the trolley by product ID.
-            //Collections.sort(trolley);
 
             if (!prodExist) { // if product is not in trolley, add to trolley
                 theProduct.setOrderedQuantity(1);
@@ -307,5 +304,27 @@ public class CustomerModel {
 //        for (Product p : trolley) {
 //            System.out.println("Name: " + p.getProductDescription() + " (ID: " + p.getProductId() + ", Qty: " + p.getOrderedQuantity() + ", Price: " + (p.getUnitPrice() * p.getOrderedQuantity()) + ")");
 //        }
+    }
+
+    public String checkStock(Product currentproduct) {
+        if (currentproduct == null) {
+            System.out.println("No product to check stock for");
+            return null;
+        }
+
+        int productStock = currentproduct.getStockQuantity();
+        System.out.println("STOCK QUAN: " + productStock);
+
+        String stockMessage;
+
+        if (productStock == 0) {
+            stockMessage = "No stock available";
+        } else if (productStock < 10) {
+            stockMessage = "Low stock: only " + productStock + " left!";
+        } else {
+            stockMessage = "In stock: " + productStock;
+        }
+
+        return stockMessage;
     }
 }

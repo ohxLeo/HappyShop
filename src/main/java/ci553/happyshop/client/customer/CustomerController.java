@@ -39,4 +39,9 @@ public class CustomerController {
 
     }
 
+    public String CheckAvailStock(Product product){
+        String ProdStockMsg = cusModel.checkStock(product);
+        return ProdStockMsg;
+    }
+
 }

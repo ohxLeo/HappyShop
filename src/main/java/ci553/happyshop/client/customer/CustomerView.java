@@ -136,7 +136,7 @@ public class CustomerView  {
 
                 if (empty || product == null) {
                     setGraphic(null);
-                    System.out.println("setCellFactory - empty item");
+                    System.out.println("empty item");
                 } else {
                     String imageName = product.getProductImageName(); // Get image name (e.g. "0001.jpg")
                     String relativeImageUrl = StorageLocation.imageFolder + imageName;
@@ -172,10 +172,17 @@ public class CustomerView  {
                     });
 
 
+                    Label laProToString = new Label(String.format("%s\nPrice: £%.2f",  product.getProductDescription(), product.getUnitPrice())); // Create a label for product details
+                    Label laProStock = new Label(cusController.CheckAvailStock(product));
 
+                    if (product.getStockQuantity() <= 10) {
+                        laProStock.setStyle("-fx-text-fill: red;");
+                    }
 
-                    Label laProToString = new Label(product.toString()); // Create a label for product details
-                    HBox hbox = new HBox(10, ivPro, laProToString, btnAdd, btnSub); // Put ImageView and label in a horizontal layout
+                    VBox ProSting = new VBox(0, laProToString, laProStock);
+
+                    System.out.println("SHOP LABEL: " + laProToString);
+                    HBox hbox = new HBox(10, ivPro, ProSting, btnAdd, btnSub); // Put ImageView and label in a horizontal layout
                     setGraphic(hbox);  // Set the whole row content
                 }
             }
