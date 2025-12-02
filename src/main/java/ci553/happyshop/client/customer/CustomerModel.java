@@ -46,8 +46,7 @@ public class CustomerModel {
                 if (p != null) {
                     results.add(p);
                 }
-            }
-            else {
+            } else {
                 results = databaseRW.searchProduct(input);
             }
 //        if (!productId.isEmpty()) {
@@ -62,15 +61,12 @@ public class CustomerModel {
 //                displayLaSearchResult = baseInfo + quantityInfo;
 //                System.out.println(displayLaSearchResult);
 //            } else {
-                theProduct = null;
-                displayLaSearchResult = "No Product was found with ID " + input;
-                System.out.println("No Product was found with ID " + input);
-            }
-
-        else if(!input.equals("")) {
+            theProduct = null;
+            displayLaSearchResult = "No Product was found with ID " + input;
+            System.out.println("No Product was found with ID " + input);
+        } else if (!input.equals("")) {
             results = databaseRW.searchProduct(input);
-        }
-        else {
+        } else {
             theProduct = null;
             displayLaSearchResult = "Please type ProductID";
             System.out.println("Please type ProductID.");
@@ -258,11 +254,11 @@ public class CustomerModel {
     }
 
     int sortChoice = 1; // for sort choice
-    void sortChange(){ // change sort type then sort
-        if(sortChoice < 4){
+
+    void sortChange() { // change sort type then sort
+        if (sortChoice < 4) {
             sortChoice++;
-        }
-        else{
+        } else {
             sortChoice = 1; // reset to first option
         }
         makeOrganizedTrolley();
@@ -319,7 +315,7 @@ public class CustomerModel {
 
         if (productStock == 0) {
             stockMessage = "No stock available";
-        } else if (productStock < 10) {
+        } else if (productStock < 15) {
             stockMessage = "Low stock: only " + productStock + " left!";
         } else {
             stockMessage = "In stock: " + productStock;

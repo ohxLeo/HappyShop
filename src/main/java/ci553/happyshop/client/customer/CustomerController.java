@@ -11,6 +11,7 @@ public class CustomerController {
     public void doAction(String action) throws SQLException, IOException {
         switch (action) {
             case "\uD83D\uDD0D":
+            case "Search":
                 cusModel.search();
                 break;
             case "Cancel":
@@ -27,8 +28,9 @@ public class CustomerController {
                 break;
         }
     }
+
     public void doTrolleyAction(String action, Product product) throws SQLException, IOException {
-        switch (action){
+        switch (action) {
             case "Add":
                 cusModel.addToTrolley(product);
                 break;
@@ -39,9 +41,9 @@ public class CustomerController {
 
     }
 
-    public String CheckAvailStock(Product product){
-        String ProdStockMsg = cusModel.checkStock(product);
-        return ProdStockMsg;
+    public String CheckAvailStock(Product product) {
+        return cusModel.checkStock(product);
     }
+
 
 }

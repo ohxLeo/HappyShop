@@ -14,6 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -30,13 +31,13 @@ import java.sql.SQLException;
 
 /**
  * The CustomerView is separated into two sections by a line :
- *
+ * <p>
  * 1. Search Page – Always visible, allowing customers to browse and search for products.
  * 2. the second page – display either the Trolley Page or the Receipt Page
- *    depending on the current context. Only one of these is shown at a time.
+ * depending on the current context. Only one of these is shown at a time.
  */
 
-public class CustomerView  {
+public class CustomerView {
     public CustomerController cusController;
 
     private final int WIDTH = UIStyle.customerWinWidth;
@@ -71,7 +72,7 @@ public class CustomerView  {
         // Create a divider line
         Line line = new Line(0, 0, 0, HEIGHT);
         line.setStrokeWidth(4);
-        line.setStroke(Color.PINK);
+        line.setStroke(Color.LIGHTBLUE);
         VBox lineContainer = new VBox(line);
         lineContainer.setPrefWidth(4); // Give it some space
         lineContainer.setAlignment(Pos.CENTER);
@@ -83,9 +84,9 @@ public class CustomerView  {
         Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
         window.setScene(scene);
         window.setTitle("🛒 HappyShop Customer Client");
-        WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
+        WinPosManager.registerWindow(window, WIDTH, HEIGHT); //calculate position x and y for this window
         window.show();
-        viewWindow=window;// Sets viewWindow to this window for future reference and management.
+        viewWindow = window;// Sets viewWindow to this window for future reference and management.
     }
 
     private VBox createSearchPage() {
@@ -95,16 +96,21 @@ public class CustomerView  {
         Label laId = new Label("ID/Name:");
         laId.setStyle(UIStyle.labelStyle);
         tfSearch = new TextField();
-        tfSearch.setPromptText("eg. 0001 / TV");
+        tfSearch.setPromptText("eg. 0001 / TV | * to see all");
         tfSearch.setStyle(UIStyle.textFiledStyle);
-        //HBox hbSeach = new HBox(10, laId, tfSearch, btnSearch);
 
-        Label laPlaceHolder = new Label(  " ".repeat(15)); //create left-side spacing so that this HBox aligns with others in the layout.
-        Button btnSearch = new Button("\uD83D\uDD0D");
+        tfSearch.setOnAction(actionEvent -> {
+            try {
+                cusController.doAction("\uD83D\uDD0D");  //pressing enter can also do search
+            } catch (SQLException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        Button btnSearch = new Button("\uD83D\uDD0D"); // button to search
         btnSearch.setStyle(UIStyle.buttonStyle);
         btnSearch.setOnAction(this::buttonClicked);
-        //HBox hbBtns = new HBox(btnSearch);
-        HBox hbSeach = new HBox(10, laId, tfSearch, btnSearch);
+        HBox hbSearch = new HBox(10, laId, tfSearch, btnSearch);
 
         ivProduct = new ImageView("imageHolder.jpg");
         ivProduct.setFitHeight(60);
@@ -123,8 +129,7 @@ public class CustomerView  {
         lvCustomerProducts = new ListView<>(customerProductList);
 
 
-
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbSeach, lvCustomerProducts);
+        VBox vbSearchPage = new VBox(15, laPageTitle, hbSearch, lvCustomerProducts);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
@@ -146,33 +151,35 @@ public class CustomerView  {
 
                     ImageView ivPro;
                     try {
-                        ivPro = new ImageView(new Image(imageFullUri, 50,45, true,true)); // Attempt to load the product image
+                        ivPro = new ImageView(new Image(imageFullUri, 50, 45, true, true)); // Attempt to load the product image
                     } catch (Exception e) {
                         // If loading fails, use a default image directly from the resources folder
-                        ivPro = new ImageView(new Image("imageHolder.jpg",50,45,true,true)); // Directly load from resources
+                        ivPro = new ImageView(new Image("imageHolder.jpg", 50, 45, true, true)); // Directly load from resources
                     }
 
                     Button btnAdd = new Button("+");
                     btnAdd.setOnAction(e -> {
+
                         try {
-                            cusController.doTrolleyAction("Add",product);
+                            cusController.doTrolleyAction("Add", product);
                         } catch (SQLException | IOException ex) {
-                            ex.printStackTrace();
+                            throw new RuntimeException(ex);
                         }
+
                     });
 
                     Button btnSub = new Button("-");
                     btnSub.setOnAction(e -> {
                         try {
-                            cusController.doTrolleyAction("Remove",product);
+                            cusController.doTrolleyAction("Remove", product);
                         } catch (SQLException | IOException ex) {
-                            ex.printStackTrace();
+                            throw new RuntimeException(ex);
                         }
 
                     });
 
 
-                    Label laProToString = new Label(String.format("%s\nPrice: £%.2f",  product.getProductDescription(), product.getUnitPrice())); // Create a label for product details
+                    Label laProToString = new Label(String.format("%s\nPrice: £%.2f", product.getProductDescription(), product.getUnitPrice())); // Create a label for product details
                     Label laProStock = new Label(cusController.CheckAvailStock(product));
 
                     if (product.getStockQuantity() <= 10) {
@@ -181,8 +188,11 @@ public class CustomerView  {
 
                     VBox ProSting = new VBox(0, laProToString, laProStock);
 
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS); // used to create space between product info and buttons
+
                     System.out.println("SHOP LABEL: " + laProToString);
-                    HBox hbox = new HBox(10, ivPro, ProSting, btnAdd, btnSub); // Put ImageView and label in a horizontal layout
+                    HBox hbox = new HBox(10, ivPro, ProSting, spacer, btnAdd, btnSub); // Put ImageView and label in a horizontal layout
                     setGraphic(hbox);  // Set the whole row content
                 }
             }
@@ -192,14 +202,13 @@ public class CustomerView  {
     }
 
 
-
     private VBox CreateTrolleyPage() {
         Label laPageTitle = new Label("🛒🛒  Trolley 🛒🛒");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
 
         taTrolley = new TextArea();
         taTrolley.setEditable(false);
-        taTrolley.setPrefSize(WIDTH/2, HEIGHT-50);
+        taTrolley.setPrefSize(WIDTH / 2, HEIGHT - 50);
 
         Button btnCancel = new Button("Cancel");
         btnCancel.setOnAction(this::buttonClicked);
@@ -234,7 +243,7 @@ public class CustomerView  {
 
         taReceipt = new TextArea();
         taReceipt.setEditable(false);
-        taReceipt.setPrefSize(WIDTH/2, HEIGHT-50);
+        taReceipt.setPrefSize(WIDTH / 2, HEIGHT - 50);
 
         Button btnCloseReceipt = new Button("OK & Close"); //btn for closing receipt and showing trolley page
         btnCloseReceipt.setStyle(UIStyle.buttonStyle);
@@ -250,18 +259,17 @@ public class CustomerView  {
 
 
     private void buttonClicked(ActionEvent event) {
-        try{
-            Button btn = (Button)event.getSource();
+        try {
+            Button btn = (Button) event.getSource();
             String action = btn.getText();
-            if(action.equals("Add to Trolley")){
+            if (action.equals("Add to Trolley")) {
                 showTrolleyOrReceiptPage(vbTrolleyPage); //ensure trolleyPage shows if the last customer did not close their receiptPage
             }
-            if(action.equals("OK & Close")){
+            if (action.equals("OK & Close")) {
                 showTrolleyOrReceiptPage(vbTrolleyPage);
             }
             cusController.doAction(action);
-        }
-        catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -274,23 +282,23 @@ public class CustomerView  {
         ivProduct.setImage(new Image(imageName));
         lbProductInfo.setText(searchResult);
         taTrolley.setText(trolley);
-        if (!receipt.equals("")) {
+        if (!receipt.isEmpty()) {
             showTrolleyOrReceiptPage(vbReceiptPage);
             taReceipt.setText(receipt);
         }
         String sortText = "Sorted by Product ID";
-        if(sortType == 1){
-            sortText = "Sorted by Product ID";} 
-        else if (sortType == 2) {
-            sortText = "Sorted by Product Name";}
-        else if (sortType == 3) {
-            sortText = "Sorted by Price | Low to High";}
-        else if (sortType == 4) {
-            sortText = "Sorted by Price | High to Low";}
-        
+        if (sortType == 1) {
+            sortText = "Sorted by Product ID";
+        } else if (sortType == 2) {
+            sortText = "Sorted by Product Name";
+        } else if (sortType == 3) {
+            sortText = "Sorted by Price | Low to High";
+        } else if (sortType == 4) {
+            sortText = "Sorted by Price | High to Low";
+        }
+
         laSortType.setText(sortText);
         System.out.println(sortType);
-
 
 
     }
@@ -338,6 +346,6 @@ public class CustomerView  {
 
     WindowBounds getWindowBounds() {
         return new WindowBounds(viewWindow.getX(), viewWindow.getY(),
-                  viewWindow.getWidth(), viewWindow.getHeight());
+                viewWindow.getWidth(), viewWindow.getHeight());
     }
 }

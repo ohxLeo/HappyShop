@@ -54,7 +54,7 @@ public class RemoveProductNotifier {
 
         Label laCustomerAction = new Label(cutomerActionBuilder());
         laCustomerAction.setWrapText(true);
-        laCustomerAction.setStyle(UIStyle.alertContentUserActionStyle);
+        laCustomerAction.setStyle(UIStyle.alertContentTextAreaStyle);
 
         Button btnOk = new Button("Ok");
         btnOk.setStyle(UIStyle.alertBtnStyle);
