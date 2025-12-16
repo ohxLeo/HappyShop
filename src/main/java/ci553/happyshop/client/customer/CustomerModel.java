@@ -286,13 +286,9 @@ public class CustomerModel {
     }
 
     public String checkStock(Product currentproduct) {
-        if (currentproduct == null) {
-            System.out.println("No product to check stock for");
-            return null;
-        }
 
         int productStock = currentproduct.getStockQuantity();
-        System.out.println("STOCK QUAN: " + productStock);
+        System.out.println("STOCK QUANTITY: " + productStock);
 
         String stockMessage;
 

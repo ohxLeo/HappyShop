@@ -185,16 +185,15 @@ public class CustomerView {
                     });
 
 
-                    Label laProToString = new Label(String.format("%s\nPrice: £%.2f", product.getProductDescription(), product.getUnitPrice())); // Create a label for product details
+                    Label laProToString = new Label(String.format("%s : %s\nPrice: £%.2f", product.getProductDescription(),product.getProductId(), product.getUnitPrice())); // Create a label for product details
+                    laProToString.setTextFill(Color.BLACK); // set its text to black;
                     //Label laProStock = new Label(String.format("%s",product.getStockQuantity()));
                     Label laProStock = new Label(cusController.CheckAvailStock(product)); // label for showing stock levels, separate for colours
-
-                 
 
                     if (product.getStockQuantity() <= 15) { // if stock is less than 15
                         laProStock.setStyle("-fx-text-fill: red;"); // text colour is red
                     } else{
-                        laProStock.setStyle("-fx-text-fill: black;"); // otherwise text colour is black
+                        laProStock.setStyle("-fx-text-fill: green;"); // otherwise text colour is black
                     }
 
                     VBox ProSting = new VBox(0, laProToString, laProStock);
@@ -205,10 +204,6 @@ public class CustomerView {
                     System.out.println("SHOP LABEL: " + laProToString);
                     HBox hbox = new HBox(10, ivPro, ProSting, spacer, btnAdd, btnSub); // Put ImageView and label in a horizontal layout
                     setGraphic(hbox);  // Set the whole row content
-
-                    if (isSelected()) {
-                        laProToString.setTextFill(Color.BLUE); // Selected item text is blue
-                    }
 
                 }
             }

@@ -318,9 +318,6 @@ public record UIStyle() {
                 -fx-font-weight: bold;
             }
             
-            .scroll-bar {
-                -fx-opacity: 0;
-            }
             """;
     }
 }
