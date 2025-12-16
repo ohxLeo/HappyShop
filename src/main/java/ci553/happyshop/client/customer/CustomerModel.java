@@ -25,7 +25,7 @@ public class CustomerModel {
     //Benefits: Flexibility: Easily change the database implementation.
 
     private Product theProduct = null; // product found from search
-    private ArrayList<Product> trolley = new ArrayList<>(); // a list of products in trolley
+    private final ArrayList<Product> trolley = new ArrayList<>(); // a list of products in trolley
 
     // Four UI elements to be passed to CustomerView for display updates.
     private String imageName = "imageHolder.jpg";                // Image to show in product preview (Search Page)
@@ -64,9 +64,8 @@ public class CustomerModel {
             theProduct = null;
             displayLaSearchResult = "No Product was found with ID " + input;
             System.out.println("No Product was found with ID " + input);
-        } else if (!input.equals("")) {
-            results = databaseRW.searchProduct(input);
-        } else {
+        }
+        else {
             theProduct = null;
             displayLaSearchResult = "Please type ProductID";
             System.out.println("Please type ProductID.");
@@ -149,7 +148,7 @@ public class CustomerModel {
             } else { // Some products have insufficient stock — build an error message to inform the customer
                 StringBuilder errorMsg = new StringBuilder();
                 for (Product p : insufficientProducts) {
-                    errorMsg.append("\u2022 ").append(p.getProductId()).append(", ")
+                    errorMsg.append("• ").append(p.getProductId()).append(", ")
                             .append(p.getProductDescription()).append(" (Only ")
                             .append(p.getStockQuantity()).append(" available, ")
                             .append(p.getOrderedQuantity()).append(" requested)\n");
@@ -175,13 +174,11 @@ public class CustomerModel {
                 notifier.showRemovalMsg(errorMsg.toString());
 
 // Build a simple message to display
-                String message = "The following products were removed because there is not enough stock:\n";
+                StringBuilder message = new StringBuilder("The following products were removed because there is not enough stock:\n");
                 for (Product p : insufficientProducts) {
-                    message += "- " + p.getProductId() + ": " + p.getProductDescription()
-                            + " (Only " + p.getStockQuantity() + " left, "
-                            + p.getOrderedQuantity() + " requested)\n";
+                    message.append("- ").append(p.getProductId()).append(": ").append(p.getProductDescription()).append(" (Only ").append(p.getStockQuantity()).append(" left, ").append(p.getOrderedQuantity()).append(" requested)\n");
                 }
-                notifier.showRemovalMsg(message);
+                notifier.showRemovalMsg(message.toString());
 
                 //displayLaSearchResult = "Checkout failed due to insufficient stock for the following products:\n" + errorMsg.toString();
                 System.out.println("stock is not enough");
@@ -197,21 +194,7 @@ public class CustomerModel {
      * Groups products by their productId to optimize database queries and updates.
      * By grouping products, we can check the stock for a given `productId` once, rather than repeatedly
      */
-    private ArrayList<Product> groupProductsById(ArrayList<Product> proList) {
-        Map<String, Product> grouped = new HashMap<>();
-        for (Product p : proList) {
-            String id = p.getProductId();
-            if (grouped.containsKey(id)) {
-                Product existing = grouped.get(id);
-                existing.setOrderedQuantity(existing.getOrderedQuantity() + p.getOrderedQuantity());
-            } else {
-                // Make a shallow copy to avoid modifying the original
-                grouped.put(id, new Product(p.getProductId(), p.getProductDescription(),
-                        p.getProductImageName(), p.getUnitPrice(), p.getStockQuantity()));
-            }
-        }
-        return new ArrayList<>(grouped.values());
-    }
+
 
     void cancel() {
 

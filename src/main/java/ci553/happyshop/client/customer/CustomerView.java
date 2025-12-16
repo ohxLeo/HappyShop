@@ -14,7 +14,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
@@ -22,7 +21,6 @@ import javafx.stage.Stage;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ListCell;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -82,6 +80,10 @@ public class CustomerView {
         hbRoot.setStyle(UIStyle.rootStyle);
 
         Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
+
+        String listStyle = UIStyle.getListviewStyle();
+        scene.getStylesheets().add("data:text/css," + listStyle);
+
         window.setScene(scene);
         window.setTitle("🛒 HappyShop Customer Client");
         WinPosManager.registerWindow(window, WIDTH, HEIGHT); //calculate position x and y for this window
@@ -127,14 +129,15 @@ public class CustomerView {
 
         customerProductList = FXCollections.observableArrayList();
         lvCustomerProducts = new ListView<>(customerProductList);
+        lvCustomerProducts.setStyle(UIStyle.CustomerListViewStyle);
 
 
-        VBox vbSearchPage = new VBox(15, laPageTitle, hbSearch, lvCustomerProducts);
+        VBox vbSearchPage = new VBox(5, laPageTitle, hbSearch, lvCustomerProducts);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
         vbSearchPage.setStyle("-fx-padding: 15px;");
 
-        lvCustomerProducts.setCellFactory(param -> new ListCell<Product>() {
+        lvCustomerProducts.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(Product product, boolean empty) {
                 super.updateItem(product, empty);
@@ -158,6 +161,7 @@ public class CustomerView {
                     }
 
                     Button btnAdd = new Button("+");
+                    btnAdd.setStyle(UIStyle.AddButtonStyle);
                     btnAdd.setOnAction(e -> {
 
                         try {
@@ -169,6 +173,7 @@ public class CustomerView {
                     });
 
                     Button btnSub = new Button("-");
+                    btnSub.setStyle(UIStyle.RemoveButtonStyle);
                     btnSub.setOnAction(e -> {
                         try {
                             cusController.doTrolleyAction("Remove", product);
@@ -180,10 +185,13 @@ public class CustomerView {
 
 
                     Label laProToString = new Label(String.format("%s\nPrice: £%.2f", product.getProductDescription(), product.getUnitPrice())); // Create a label for product details
-                    Label laProStock = new Label(cusController.CheckAvailStock(product));
+                    //Label laProStock = new Label(String.format("%s",product.getStockQuantity()));
+                    Label laProStock = new Label(cusController.CheckAvailStock(product)); // label for showing stock levels, separate for colours
 
-                    if (product.getStockQuantity() <= 10) {
-                        laProStock.setStyle("-fx-text-fill: red;");
+                 
+
+                    if (product.getStockQuantity() <= 15) { // if stock is less than 15
+                        laProStock.setStyle("-fx-text-fill: red;"); // text colour is red
                     }
 
                     VBox ProSting = new VBox(0, laProToString, laProStock);
@@ -206,9 +214,12 @@ public class CustomerView {
         Label laPageTitle = new Label("🛒🛒  Trolley 🛒🛒");
         laPageTitle.setStyle(UIStyle.labelTitleStyle);
 
+
         taTrolley = new TextArea();
         taTrolley.setEditable(false);
-        taTrolley.setPrefSize(WIDTH / 2, HEIGHT - 50);
+        taTrolley.setPrefSize((double) WIDTH / 2, HEIGHT);
+
+
 
         Button btnCancel = new Button("Cancel");
         btnCancel.setOnAction(this::buttonClicked);
@@ -220,17 +231,16 @@ public class CustomerView {
 
         laSortType = new Label("Sorted by Product ID");
         laSortType.setStyle(UIStyle.labelStyle);
-
         Button btnSort = new Button("Sort");
         btnSort.setOnAction(this::buttonClicked);
         btnSort.setStyle(UIStyle.buttonStyle);
 
 
-        HBox hbBtns = new HBox(8, btnCancel, btnSort, btnCheckout);
-        hbBtns.setStyle("-fx-padding: 15px;");
+        HBox hbBtns = new HBox(2, btnCancel, btnSort, btnCheckout);
+        hbBtns.setStyle("-fx-padding: 1px;");
         hbBtns.setAlignment(Pos.CENTER);
 
-        vbTrolleyPage = new VBox(5, laPageTitle, taTrolley, laSortType, hbBtns);
+        vbTrolleyPage = new VBox(10, laPageTitle, taTrolley, laSortType, hbBtns);
         vbTrolleyPage.setPrefWidth(COLUMN_WIDTH);
         vbTrolleyPage.setAlignment(Pos.TOP_CENTER);
         vbTrolleyPage.setStyle("-fx-padding: 15px;");
@@ -243,7 +253,7 @@ public class CustomerView {
 
         taReceipt = new TextArea();
         taReceipt.setEditable(false);
-        taReceipt.setPrefSize(WIDTH / 2, HEIGHT - 50);
+        taReceipt.setPrefSize((double) WIDTH / 2, HEIGHT - 50);
 
         Button btnCloseReceipt = new Button("OK & Close"); //btn for closing receipt and showing trolley page
         btnCloseReceipt.setStyle(UIStyle.buttonStyle);
@@ -269,9 +279,7 @@ public class CustomerView {
                 showTrolleyOrReceiptPage(vbTrolleyPage);
             }
             cusController.doAction(action);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -282,6 +290,7 @@ public class CustomerView {
         ivProduct.setImage(new Image(imageName));
         lbProductInfo.setText(searchResult);
         taTrolley.setText(trolley);
+
         if (!receipt.isEmpty()) {
             showTrolleyOrReceiptPage(vbReceiptPage);
             taReceipt.setText(receipt);
@@ -307,18 +316,12 @@ public class CustomerView {
         int proCounter = productList.size();
         System.out.println(proCounter);
 
-        // Optional: update a label if you want a summary like warehouse
-        // You might need to add this label to your search page first
-        // laSearchSummary.setText(proCounter + " products found");
-        // laSearchSummary.setVisible(true);
-
         // Update the observable list
         customerProductList.clear();
         customerProductList.addAll(productList);
 
         // Optionally, select the first product and update the image/info display
         if (!customerProductList.isEmpty()) {
-            lvCustomerProducts.getSelectionModel().select(1);
             Product firstProduct = lvCustomerProducts.getSelectionModel().getSelectedItem();
 
             // Update image and info labels

@@ -43,16 +43,15 @@ public class Main extends Application {
     @Override
     public void start(Stage window) throws IOException {
         startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
+        startEmergencyExit();
 
         // Initializes the order map for the OrderHub. This must be called after starting the observer clients
         // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
         initializeOrderMap();
 
         startWarehouseClient();
-
-        startEmergencyExit();
+        startPickerClient();
+        startOrderTracker();
     }
 
     /** The customer GUI -search prodduct, add to trolley, cancel/submit trolley, view receipt
