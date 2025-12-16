@@ -283,7 +283,6 @@ public record UIStyle() {
     public static String getListviewStyle() {
         return """
             .list-view {
-                /* Container Style */
                 -fx-background-color: #F8F8F8; /* Light gray background for the entire list */
                 -fx-background-radius: 12px;
                 -fx-border-color: #DDDDDD;
@@ -293,7 +292,6 @@ public record UIStyle() {
             }
 
             .list-cell {
-                /* Default Cell Design */
                 -fx-background-color: #FFFFFF; /* White cell background */
                 -fx-text-fill: #333333; /* Dark text */
                 -fx-font-size: 14px;
@@ -317,11 +315,11 @@ public record UIStyle() {
             }
 
             .list-cell:selected {
-                /* Selected Color */
-                -fx-background-color: #007ACC; /* Standard blue for selection */
-                -fx-text-fill: #FFFFFF; /* White text for contrast */
                 -fx-font-weight: bold;
-                -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0.0, 0, 1);
+            }
+            
+            .scroll-bar {
+                -fx-opacity: 0;
             }
             """;
     }

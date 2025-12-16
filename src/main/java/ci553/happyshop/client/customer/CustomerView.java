@@ -132,6 +132,7 @@ public class CustomerView {
         lvCustomerProducts.setStyle(UIStyle.CustomerListViewStyle);
 
 
+
         VBox vbSearchPage = new VBox(5, laPageTitle, hbSearch, lvCustomerProducts);
         vbSearchPage.setPrefWidth(COLUMN_WIDTH);
         vbSearchPage.setAlignment(Pos.TOP_CENTER);
@@ -146,12 +147,12 @@ public class CustomerView {
                     setGraphic(null);
                     System.out.println("empty item");
                 } else {
+
                     String imageName = product.getProductImageName(); // Get image name (e.g. "0001.jpg")
                     String relativeImageUrl = StorageLocation.imageFolder + imageName;
                     // Get the full absolute path to the image
                     Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
                     String imageFullUri = imageFullPath.toUri().toString();// Build the full image Uri
-
                     ImageView ivPro;
                     try {
                         ivPro = new ImageView(new Image(imageFullUri, 50, 45, true, true)); // Attempt to load the product image
@@ -192,6 +193,8 @@ public class CustomerView {
 
                     if (product.getStockQuantity() <= 15) { // if stock is less than 15
                         laProStock.setStyle("-fx-text-fill: red;"); // text colour is red
+                    } else{
+                        laProStock.setStyle("-fx-text-fill: black;"); // otherwise text colour is black
                     }
 
                     VBox ProSting = new VBox(0, laProToString, laProStock);
@@ -202,6 +205,11 @@ public class CustomerView {
                     System.out.println("SHOP LABEL: " + laProToString);
                     HBox hbox = new HBox(10, ivPro, ProSting, spacer, btnAdd, btnSub); // Put ImageView and label in a horizontal layout
                     setGraphic(hbox);  // Set the whole row content
+
+                    if (isSelected()) {
+                        laProToString.setTextFill(Color.BLUE); // Selected item text is blue
+                    }
+
                 }
             }
         });
@@ -322,6 +330,7 @@ public class CustomerView {
 
         // Optionally, select the first product and update the image/info display
         if (!customerProductList.isEmpty()) {
+            lvCustomerProducts.getSelectionModel().select(0);
             Product firstProduct = lvCustomerProducts.getSelectionModel().getSelectedItem();
 
             // Update image and info labels
