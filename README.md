@@ -19,3 +19,11 @@ After opening the project in IntelliJ:
 ✅ Developed in IntelliJ with Maven  
 ✅ Designed for CI553 coursework  
 ✅ Easy setup and clean structure
+
+# FEATURES ADDED
+- Quantity Addition
+- Better Search
+- Sorting Trolley
+- Adding / Removal Products easily
+- Stock Information
+- Insufficient Stock Warning
